@@ -1,4 +1,3 @@
-
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -42,14 +41,18 @@ const instituteSchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "Instructor",
     },
-    Courses: {
-      type: Schema.Types.ObjectId,
-      ref: "Course",
-    },
-    Students: {
-      type: Schema.Types.ObjectId,
-      ref: "Student",
-    },
+    Courses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
+    Students: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Student",
+      },
+    ],
     StudentsCount: {
       type: Number,
       default: 0,
@@ -58,6 +61,12 @@ const instituteSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    Instructors: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Instructor",
+      },
+    ],
     InstructorsCount: {
       type: Number,
       default: 0,
@@ -82,14 +91,18 @@ instituteSchema.statics.HashPassword = async (password) => {
   }
 };
 
-instituteSchema.statics.ComparePassword = async (password, hash) => {
-  try {
-    return await bcrypt.compare(password, hash);
-  } catch (error) {
-    console.error("Error comparing password:", error);
-    throw error;
+instituteSchema.statics.comparePassword = async function (
+  password,
+  hashedPassword
+) {
+  console.log(password, hashedPassword);
+  if (!password || !hashedPassword) {
+    throw new Error("Password and hashed password are required");
   }
+  return await bcrypt.compare(password, hashedPassword);
 };
+
+// then call:
 
 instituteSchema.statics.GenerateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -106,4 +119,5 @@ instituteSchema.statics.VerifyToken = (token) => {
   }
 };
 
-export default mongoose.model("Institute", instituteSchema);
+const InstituteSchema = mongoose.model("Institute", instituteSchema);
+export default InstituteSchema;
